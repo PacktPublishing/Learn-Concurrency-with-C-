@@ -1,0 +1,9 @@
+@startuml basic_order_use_case
+
+GUI -> OrderApp: makeOrder
+OrderApp -> OrderApp: buildOrder
+OrderApp -> MachineOperations: executeOrder
+MachineOperations --> OrderApp: orderReady
+OrderApp --> GUI: orderReady
+
+@enduml

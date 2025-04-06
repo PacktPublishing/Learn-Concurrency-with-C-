@@ -1,0 +1,18 @@
+@startuml problem_with_use_case_combination
+
+participant GUI order 1
+participant OrderApp order 2
+participant MachineOperations order 3
+
+GUI -> OrderApp: makeOrder
+OrderApp -> OrderApp: buildOrder
+OrderApp -> MachineOperations: executeOrder
+
+MachineOperations -> MachineOperations: temperatureChanged
+MachineOperations -> MachineOperations: halt operations\nand wait for decision
+
+MachineOperations -> OrderApp: decideTemperatureAction
+OrderApp -> OrderApp: <font color=red><b>order app busy,\n<font color=red><b>cannot decide
+MachineOperations -> MachineOperations: <font color=red><b>machine busy,\n<font color=red><b>cannot proceed
+
+@enduml

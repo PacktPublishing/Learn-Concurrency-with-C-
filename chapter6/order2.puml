@@ -1,0 +1,15 @@
+@startuml basic_temperature_use_case
+
+participant GUI order 1
+participant OrderApp order 2
+participant MachineOperations order 3
+
+MachineOperations -> MachineOperations: temperatureChanged
+MachineOperations -> MachineOperations: halt operations\nand wait for decision
+
+MachineOperations -> OrderApp: decideTemperatureAction
+OrderApp -> OrderApp: checkIfTemperatureTooHigh
+OrderApp -> GUI: suggestMaintenanceAction
+OrderApp -> MachineOperations: continueOperations
+
+@enduml

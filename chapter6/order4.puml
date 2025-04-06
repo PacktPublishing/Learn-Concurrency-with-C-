@@ -1,0 +1,27 @@
+@startuml resolved_use_case_combination
+
+participant GUI order 1
+participant OrderAppQueue order 2
+participant OrderApp order 3
+participant MachineOperationsQueue order 5
+participant MachineOperations order 6
+
+GUI -> OrderAppQueue: makeOrder
+GUI <-- OrderAppQueue : immediate response,\nmessage registered
+OrderApp -> OrderAppQueue: getAction
+OrderApp -> MachineOperationsQueue: executeOrder
+OrderApp <-- MachineOperationsQueue: immediate response,\nmessage registered,\n<font color=green><b>app not blocked
+
+MachineOperations -> MachineOperationsQueue: getAction
+MachineOperations -> MachineOperations: start operations
+MachineOperations -> MachineOperations: temperatureChanged
+MachineOperations -> MachineOperations: halt operations\nand wait for decision
+MachineOperations -> OrderAppQueue: decideTemperatureAction
+MachineOperations <-- OrderAppQueue: immediate response,\nmessage registered
+OrderApp -> OrderAppQueue: <font color=green><b>getAction possible,\n<font color=green><b>app not blocked
+OrderApp -> OrderApp: <font color=green><b>decision making possible,\n<font color=green><b>app not blocked
+OrderApp -> MachineOperationsQueue: continueOperations
+MachineOperations -> MachineOperationsQueue: getAction
+MachineOperations -> MachineOperations: renew operations
+
+@enduml
