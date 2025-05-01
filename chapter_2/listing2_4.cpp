@@ -33,4 +33,4 @@ int main() {
   doWork(std::thread::hardware_concurrency());
   return 0;
 }
-// Listing 17: Launching threads and passing future/promise values with async
+// Listing 2.4: Launching threads and passing future/promise values with async
