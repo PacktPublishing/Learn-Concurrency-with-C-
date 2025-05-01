@@ -12,10 +12,18 @@ auto heavyComputation(std::stop_token stopToken) {
     std::println("Thread {} is processing...", id);
     std::this_thread::sleep_for(1s);
   }
+
+  const auto stopCallback = std::stop_callback{
+    stopToken, 
+    []{
+      auto id = std::this_thread::get_id();
+      std::println("Thread: {} is stopping...", id);
+    }
+  };
 }
 
 auto doWork(int maxThreads) {
-  const auto stopSource = std::stop_source{};
+  auto stopSource = std::stop_source{};
   auto jthreads = std::vector<std::jthread>{};
   jthreads.reserve(maxThreads);
   for (int i = 0; i < maxThreads; i++) {
@@ -27,7 +35,8 @@ auto doWork(int maxThreads) {
 }
 
 int main() {
+  std::print("Main thread id: {}\n", std::this_thread::get_id());
   doWork(std::thread::hardware_concurrency());
   return 0;
 }
-// Listing 10: jthread stop source to stop all threads simultaneously
+// Listing 1.13: stop callback created after cancellation was requested

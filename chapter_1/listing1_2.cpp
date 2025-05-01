@@ -9,4 +9,4 @@ int main() {
   myThread.join();
   return 0;
 }
-// Listing 2: Thread creation with parameters passing
+// Listing 1.2: Thread creation with parameters passing

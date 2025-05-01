@@ -15,17 +15,28 @@ auto heavyComputation(std::stop_token stopToken) {
 }
 
 auto doWork(int maxThreads) {
+  const auto stopSource = std::stop_source{};
+  const auto stopCallback = std::stop_callback{
+    stopSource.get_token(), 
+    []{
+      auto id = std::this_thread::get_id();
+      std::println("Thread: {} is stopping...", id);
+    }
+  };
+
   auto jthreads = std::vector<std::jthread>{};
   jthreads.reserve(maxThreads);
   for (int i = 0; i < maxThreads; i++) {
-    jthreads.emplace_back(heavyComputation);
+    jthreads.emplace_back(heavyComputation, stopSource.get_token());
   }
+
   std::this_thread::sleep_for(5s);
+  stopSource.request_stop();
 }
 
-int main()
-{
+int main() {
+  std::println("Main thread id: {}", std::this_thread::get_id());
   doWork(std::thread::hardware_concurrency());
   return 0;
 }
-// Listing 8: Using jthread for cancelation
+// Listing 1.11: jthread stop callback example

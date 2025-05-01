@@ -42,4 +42,4 @@ int main() {
   doWork(std::thread::hardware_concurrency() - 1);
   return 0;
 }
-// Listing 7: Thread cancellation
+// Listing 1.7: Thread cancellation

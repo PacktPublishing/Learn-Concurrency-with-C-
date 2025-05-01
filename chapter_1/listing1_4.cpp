@@ -16,22 +16,23 @@ auto heavyComputation(int i) {
 }
 
 auto doWork(int maxThreads) {
-  auto jthreads = std::vector<std::jthread>{};
-  jthreads.reserve(maxThreads);
+  auto threads = std::vector<std::thread>{};
+  threads.reserve(maxThreads);
 
-  for (int i = 0; i < maxThreads; i++)
-  {
-    jthreads.emplace_back(heavyComputation, i);
+  for (int i = 0; i < maxThreads; i++) {
+    threads.emplace_back(heavyComputation, i);
   }
+
   prepareForResults();
+
+  for (auto& t : threads) {
+    std::println("Joining thread: {}", t.get_id());
+    t.join();
+  }
 }
 
 int main() {
-  try {
-    doWork(std::thread::hardware_concurrency() - 1);
-  } catch (const std::exception &e) {
-    std::print("Caught exception: {}\n", e.what());
-  }
+  doWork(std::thread::hardware_concurrency() - 1);
   return 0;
 }
-// Listing 6: DoWork function with an std::jthread
+// Listing 1.4: Starting multiple threads

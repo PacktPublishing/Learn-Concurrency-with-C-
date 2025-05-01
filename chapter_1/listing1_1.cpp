@@ -10,4 +10,4 @@ int main() {
   myThread.join();
   return 0;
 }
-// Listing 1: Simple thread creation
+// Listing 1.1: Simple thread creation

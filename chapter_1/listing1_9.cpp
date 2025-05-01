@@ -33,4 +33,4 @@ int main()
   doWork(std::thread::hardware_concurrency());
   return 0;
 }
-// Listing 9: Using jthread with explicit stop
+// Listing 1.9: Using jthread with explicit stop

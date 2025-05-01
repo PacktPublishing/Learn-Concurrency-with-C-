@@ -39,4 +39,4 @@ int main() {
   doWork(std::thread::hardware_concurrency());
   return 0;
 }
-// Listing 12: stop callback moved inside jthread
+// Listing 1.12: stop callback moved inside jthread
