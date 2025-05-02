@@ -17,12 +17,14 @@ auto doWork() {
   auto jthread = std::jthread(heavyComputation, std::move(promise));
   std::println("Waiting for the result...");
 
-  auto result = future.get();
-
-  try {
-    future.get();
-  } catch (const std::future_error& e) {
-    std::println("Error: {}", e.what());
+  for (auto i = 0; i < 10; ++i) {
+    try {
+      auto result = future.get();
+      std::println("Do something with: {}", result);
+      result += 10;
+    } catch (const std::future_error& e) {
+      std::println("Error: {}", e.what());
+    }
   }
 }
 

@@ -5,7 +5,9 @@
 
 using std::chrono_literals::operator""s;
 
-auto throwingOperation() { throw std::runtime_error("Computation error"); }
+auto throwingOperation() { 
+  throw std::runtime_error("Computation error"); 
+}
 
 auto heavyComputation(std::promise<int> promise) {
   std::this_thread::sleep_for(3s);

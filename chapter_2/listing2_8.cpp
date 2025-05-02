@@ -5,16 +5,28 @@
 
 using std::chrono_literals::operator""s;
 
-auto heavyComputation(std::stop_token stopToken, std::promise<int> promise) {
-  try {
-    throw std::runtime_error("Computation error");
-  } catch (const std::exception& e) {
-    promise.set_exception_at_thread_exit(
-        std::current_exception());  // store exception at thread finish
-  }
+auto continuousProcessing() {
+  std::println("Processing...");
+  std::this_thread::sleep_for(2s);
+  throw std::runtime_error("Processing error"); 
+}
 
+auto cleanup() { 
+  std::println("Cleaning up...");
+  std::this_thread::sleep_for(2s);
+}
+
+auto heavyComputation(std::stop_token stopToken, std::promise<int> p) {
   while (not stopToken.stop_requested()) {
-    std::this_thread::sleep_for(1s);  // simulate computation
+    try {
+      continuousProcessing();
+      p.set_value_at_thread_exit(21);
+    } catch (const std::exception& e) {
+      std::println("Caught exception: {}", e.what());
+      p.set_exception_at_thread_exit(std::current_exception());
+    }
+    cleanup();
+    return;
   }
 }
 
@@ -24,22 +36,12 @@ int main() {
   std::println("Starting work on a detached thread");
 
   auto t = std::jthread(heavyComputation, std::move(promise));
-
-  std::println("Is jthread joinable before detach: {}", t.joinable());
   t.detach();
-  std::println("Is jthread joinable after detach: {}", t.joinable());
 
-  std::this_thread::sleep_for(1s);
-
-  std::println("Is stop possible before request: {}",
-               t.get_stop_source().stop_possible());
-  std::println("Is stop requested: {}\n", t.get_stop_source().stop_requested());
+  std::println("Waiting without joining thread...");
+  std::this_thread::sleep_for(3s);
+  std::println("Requesting execution stop...");
   t.request_stop();
-  std::println("Is stop possible after request: {}",
-               t.get_stop_source().stop_possible());
-  std::println("Is stop requested: {}\n", t.get_stop_source().stop_requested());
-
-  std::this_thread::sleep_for(1s);
 
   try {
     std::println("Obtaining result...");
@@ -49,4 +51,4 @@ int main() {
   }
   return 0;
 }
-// Listing 2.8: Starting a detached jthread with a promise
+// Listing 2.8: Detaching jthread and using set_exception_at_thread_exit

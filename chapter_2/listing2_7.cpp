@@ -18,9 +18,9 @@ int main() {
   auto t = std::thread(heavyComputation, std::move(promise));
   t.detach();
 
-  std::println("Waiting...");
+  std::println("Waiting without joining thread...");
   future.wait();
   std::println("Thread complete, result: {}", future.get());
   return 0;
 }
-// Listing 2.7: Starting a detached thread with a promise
+// Listing 2.7: Starting a detached thread and using set_value_at_thread_exit
