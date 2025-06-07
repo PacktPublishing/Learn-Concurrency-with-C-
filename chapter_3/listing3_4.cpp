@@ -32,4 +32,4 @@ int main() {
   }
   return 0;
 }
-// Listing 27: Exceptions in algorithms with execution policies
+// Listing 3.4: Exceptions in algorithms with execution policies

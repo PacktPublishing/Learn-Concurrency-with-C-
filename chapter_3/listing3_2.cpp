@@ -17,4 +17,4 @@ int main() {
   std::println("All elements are 'c--': {}", allElementsEqual("c--"));
   return 0;
 }
-// Listing 25: parallel all_of algorithm
+// Listing 3.2: parallel all_of algorithm

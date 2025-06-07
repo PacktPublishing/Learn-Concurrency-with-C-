@@ -10,7 +10,7 @@ int main() {
   auto parUnseqPolicyResult = DataSet(data.size());
   parUnseqPolicyResult.reserve(data.size());
   std::transform(std::execution::par_unseq, cbegin(data), cend(data),
-                 std::back_inserter(parUnseqPolicyResult),
+                 cbegin(parUnseqPolicyResult),
                  [](const auto& x) { return x + 21; });
 
   std::println("Parallel-unsequenced transform successful: {}",
@@ -20,4 +20,4 @@ int main() {
                            [](const auto& x) { return x == 42; }));
   return 0;
 }
-// Listing 26: Parallel-unsequenced transform
+// Listing 3.3: Parallel-unsequenced transform

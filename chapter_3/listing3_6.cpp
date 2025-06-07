@@ -44,4 +44,4 @@ int main() {
   getMinMax(squaredNumbers);
   return 0;
 }
-// Listing 29: performing several operations on a dataset without ranges
+// Listing 3.6: Performing several operations on data without ranges

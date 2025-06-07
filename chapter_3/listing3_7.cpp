@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <execution>
 #include <numeric>
 #include <print>
 #include <random>
@@ -26,13 +25,12 @@ int main() {
 
   auto numbers = getRandomNumbers(20);
 
-  auto [min, max] = 
-    std::ranges::minmax(
-      std::execution::par, numbers 
-        | std::views::filter(std::execution::seq, isEven) 
-        | std::views::transform(std::execution::par_unseq, squareEl));
+  auto [min, max] =
+    std::ranges::minmax(numbers 
+                        | std::views::filter(isEven) 
+                        | std::views::transform(squareEl));
 
   std::print("Min: {}, Max: {}\n", min, max);
   return 0;
 }
-// Listing 31: proposed syntax for using ranges with parallel policies
+// Listing 3.7: Chaining several operations using ranges
