@@ -4,6 +4,7 @@
 #include <print>
 #include <stop_token>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 auto getMaxNrOfBackgroundThreads() {
@@ -11,10 +12,14 @@ auto getMaxNrOfBackgroundThreads() {
   return maxThreads > 1 ? maxThreads - 1 : 1;
 }
 
+using SpecialCharacters = std::unordered_map<char, std::string>;
+
 class App {
  public:
   explicit App(unsigned maxThreads)
-      : maxBackgroundThreads_(maxThreads) {
+      : maxBackgroundThreads_(maxThreads),
+        specialChars_{{'q', "quit"},
+                      {'e', "throw an exception"}} {
     backgroundThreads_.reserve(maxThreads);
     std::println("Using {} threads for background computation",
                  maxBackgroundThreads_);
@@ -40,11 +45,11 @@ class App {
       talkWithUser();
     } catch (const std::exception& e) {
       std::println("Exception occurred: {}", e.what());
-      std::println("Returning safely");
     }
   }
 
-  auto heavyComputation(std::stop_token token, int modulo) -> void {
+  auto heavyComputation(std::stop_token token, int modulo)
+      -> void {
     std::println("Simulating computation in background");
     auto sum = 0u;
     for (auto i = 0u; i < 1'000'000'000u; ++i) {
@@ -77,8 +82,16 @@ class App {
     }
   }
 
+  auto printSpecialCharacters() {
+    std::println("Special characters:");
+    for (const auto& [ch, action] : specialChars_) {
+      std::println(" > {} to {}", ch, action);
+    }
+  }
+
   unsigned maxBackgroundThreads_;
   std::vector<std::jthread> backgroundThreads_;
+  SpecialCharacters specialChars_;
 };
 
 int main() {

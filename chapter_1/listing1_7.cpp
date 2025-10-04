@@ -2,6 +2,7 @@
 #include <print>
 #include <thread>
 #include <vector>
+#include <unordered_map>
 
 auto getMaxNrOfBackgroundThreads() {
   const auto maxThreads = std::thread::hardware_concurrency();
@@ -17,8 +18,20 @@ auto heavyComputation(int modulo) {
   std::println("Computation finished. Result: {}", sum);
 }
 
+using SpecialCharacters = std::unordered_map<char, std::string>;
+const SpecialCharacters SPECIAL_CHARS = {
+    {'q', "quit"}, {'e', "throw an exception"}};
+
+auto printSpecialCharacters() {
+  std::println("Special characters:");
+  for (const auto& [ch, action] : SPECIAL_CHARS) {
+    std::println(" > {} to {}", ch, action);
+  }
+}
+
 auto talkWithUser() {
-  std::println("Enter character to process (or 'q' to quit):");
+  std::println("Enter character, press ENTER to process");
+  printSpecialCharacters();
   char input;
   while (std::cin >> input) {
     if (input == 'q') {
@@ -46,7 +59,6 @@ auto launchApp() {
     talkWithUser();
   } catch (const std::exception& e) {
     std::println("Exception occurred: {}", e.what());
-    std::println("Returning safely");
   }
 }
 
