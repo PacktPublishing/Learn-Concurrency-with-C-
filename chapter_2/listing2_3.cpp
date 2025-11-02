@@ -11,25 +11,24 @@ auto brokenComputation(std::promise<int> promise) {
 
 auto doWork() {
   std::println("Starting computation...");
-  auto brokenPromise = std::promise<int>();
-  auto disapppointedFuture = brokenPromise.get_future();
-  auto jthread = std::jthread(brokenComputation, std::move(brokenPromise));
+  auto brokenPromise = std::promise<int>{};
+  auto disappointedFuture = brokenPromise.get_future();
+  auto jthread =
+      std::jthread(brokenComputation, std::move(brokenPromise));
   std::println("Waiting for the result...");
 
-  while (disapppointedFuture.wait_for(1s) != std::future_status::ready) {
+  while (disappointedFuture.wait_for(1s) !=
+         std::future_status::ready) {
     std::println("Still waiting...");
   }
 
   try {
-    auto result = disapppointedFuture.get();
+    auto result = disappointedFuture.get();
     std::println("Result: {}", result);
   } catch (const std::future_error &e) {
     std::println("Caught exception: {}", e.what());
   }
 }
 
-int main() {
-  doWork();
-  return 0;
-}
+int main() { doWork(); }
 // Listing 2.3: Expressing an unfulfilled result

@@ -20,7 +20,6 @@ auto doWork() {
   auto sharedFuture = future.share();
 
   std::println("First result: {}", sharedFuture.get());
-  std::this_thread::sleep_for(1s);
   std::println("Second result: {}", sharedFuture.get());
 }
 

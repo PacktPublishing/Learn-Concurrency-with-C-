@@ -13,7 +13,7 @@ auto heavyComputation() -> int {
 class LongtermProcess {
  public:
   auto launchProcess() -> std::shared_future<int> {
-    const auto lock = std::lock_guard<std::mutex>(m_);
+    const auto lock = std::lock_guard{m_};
     if (result_.has_value() and
         (*result_).wait_for(0s) != std::future_status::ready) {
       std::println("Process already running");

@@ -1,27 +1,26 @@
-#include <chrono>
 #include <future>
 #include <print>
 #include <thread>
 
-using std::chrono_literals::operator""s;
-
-auto heavyComputation(std::promise<int> promise) {
-  std::this_thread::sleep_for(3s);
-  promise.set_value(21);
+auto heavyComputation(std::promise<unsigned> promise) {
+  std::println("Simulating computation in background");
+  auto sum = 0u;
+  for (auto i = 0u; i < 1'000'000'000u; ++i) {
+    sum += i % 2;
+  }
+  promise.set_value(sum);
 }
 
 auto doWork() {
   std::println("Starting computation...");
-  auto promise = std::promise<int>();
+  auto promise = std::promise<unsigned>();
   auto future = promise.get_future();
-  auto jthread = std::jthread(heavyComputation, std::move(promise));
+  auto jthread =
+      std::jthread(heavyComputation, std::move(promise));
   std::println("Waiting for the result...");
   auto result = future.get();
-  std::println("Result: {}", result);
+  std::println("Computation finished. Result: {}", result);
 }
 
-int main() {
-  doWork();
-  return 0;
-}
+int main() { doWork(); }
 // Listing 2.1: Passing results with future/promise
