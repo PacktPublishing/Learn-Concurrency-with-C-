@@ -1,39 +1,28 @@
 #include <print>
 #include <thread>
-#include <vector>
 
-class Resource {
- public:
-  auto getX() const { return x; }
-  auto setX(int val) { x = val; }
-
- private:
-  int x{21};
-};
-
-Resource resource{};
-
-auto heavyComputation() {
-  auto x_before = resource.getX();
-  std::println("Value of x before: {}", x_before);
-  auto new_x = x_before + 1;
-  resource.setX(new_x);
-  auto x_after = resource.getX();
-  std::println("Value of x after: {}", x_after);
+auto thread_func1(std::thread& t2) {
+  std::println("Thread 1 started");
+  t2.join();
+  std::println("Thread 1 finished");
 }
 
-auto doWork(int maxThreads) {
-  auto jthreads = std::vector<std::jthread>();
-  for (int i = 0; i < maxThreads; i++) {
-    jthreads.emplace_back(heavyComputation);
-  }
+auto thread_func2(std::thread& t1) {
+  std::println("Thread 2 started");
+  t1.join();
+  std::println("Thread 2 finished");
 }
 
 int main() {
-  auto nrOfThreads = std::thread::hardware_concurrency();
-  std::println("Number of threads: {}", nrOfThreads);
-  doWork(nrOfThreads);
-  std::println("Final value of x: {}", resource.getX());
+  auto t1 = std::thread{};
+  auto t2 = std::thread{};
+  t1 = std::thread(thread_func1, std::ref(t2));
+  t2 = std::thread(thread_func2, std::ref(t1));
+
+  t1.join();
+  t2.join();
+
+  std::println("Main thread finished");
   return 0;
 }
-// Listing 3.9: Data race: incrementing x in multiple threads
+// Listing 3.9: Deadlock: threads stuck waiting for each other

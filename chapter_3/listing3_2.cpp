@@ -1,20 +1,37 @@
 #include <algorithm>
 #include <execution>
 #include <print>
-#include <string>
 #include <vector>
 
+constexpr double c = 299'792'458.0;  // speed of light, m/s
+
+auto convertToFrequencyTHz(double wavelenNm) {
+  return c * 1e-3 / wavelenNm;
+}
+using DataVector = std::vector<double>;
+
+void printMeasurementData(const DataVector& wavelengthsNm,
+                          const DataVector& frequenciesThz) {
+  std::println("{:^15} | {:^15}", "Wavelength (nm)",
+               "Frequency (THz)");
+  std::println("{:-^32}", "");
+
+  for (auto i = 0; i < wavelengthsNm.size(); ++i) {
+    std::println("{:<15.2f} | {:>15.2f}", wavelengthsNm[i],
+                 frequenciesThz[i]);
+  }
+}
+
 int main() {
-  using DataSet = std::vector<std::string>;
-  const auto data = DataSet(10, "c++");
-
-  auto allElementsEqual = [&data](auto& value) {
-    return std::all_of(std::execution::par, cbegin(data), cend(data),
-                       [&value](const auto& x) { return x == value; });
-  };
-
-  std::println("All elements are 'c++': {}", allElementsEqual("c++"));
-  std::println("All elements are 'c--': {}", allElementsEqual("c--"));
+  const auto wavelengthsNm =
+      DataVector{973.0, 705.9, 884.9, 399.5, 484.6,
+                 413.8, 675.7, 686.5, 550.5, 877.2};
+  auto frequenciesThz = DataVector{};
+  frequenciesThz.reserve(wavelengthsNm.size());
+  std::transform(std::execution::par, cbegin(wavelengthsNm),
+                 cend(wavelengthsNm), begin(frequenciesThz),
+                 convertToFrequencyTHz);
+  printMeasurementData(wavelengthsNm, frequenciesThz);
   return 0;
 }
-// Listing 3.2: parallel all_of algorithm
+// Listing 3.2: use std::transform with execution policy

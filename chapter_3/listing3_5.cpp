@@ -1,34 +1,47 @@
 #include <algorithm>
-#include <execution>
-#include <mutex>
+#include <numeric>
 #include <print>
+#include <random>
 #include <vector>
 
-using Add = unsigned;
+using DataVector = std::vector<int>;
 
-struct InvalidUnsequencedUsage {
-  auto modifyOneByOne(Add toAdd) -> void {
-    std::for_each(std::execution::par_unseq, sharedNumbers_.begin(),
-                  sharedNumbers_.end(), [this, &toAdd](auto& val) {
-                    const auto guard = std::lock_guard(m_);
-                    val += toAdd;
-                  });
-  }
-
-  std::mutex m_;
-  std::vector<unsigned> sharedNumbers_{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-};
+auto getRandomNumbers(unsigned size) -> DataVector {
+  auto randomGenerator = []() {
+    auto seed = std::random_device{}();
+    auto eng = std::default_random_engine{seed};
+    auto dist = std::uniform_int_distribution<int>(1, 100);
+    return dist(eng);
+  };
+  auto numbers = DataVector(size, 0);
+  std::generate(begin(numbers), end(numbers), randomGenerator);
+  return numbers;
+}
 
 int main() {
-  auto invalidUsage = InvalidUnsequencedUsage{};
-  for (auto& n : invalidUsage.sharedNumbers_) {
-    std::print("{} ", n);
-  }
-  std::println();
-  invalidUsage.modifyOneByOne(Add{20});
-  for (auto& n : invalidUsage.sharedNumbers_) {
-    std::print("{} ", n);
-  }
-  std::println();
+  const auto getMinMax = [](const auto& collection) {
+    auto [min, max] = std::minmax_element(cbegin(collection),
+                                          cend(collection));
+    std::print("Min: {}, Max: {}\n", *min, *max);
+  };
+  const auto isEven = [](const auto& n) { return n % 2 == 0; };
+  const auto squareEl = [](const auto& n) { return n * n; };
+
+  auto numbers = getRandomNumbers(20);
+  getMinMax(numbers);
+
+  auto filteredNumbers = DataVector{};
+  filteredNumbers.reserve(numbers.size());
+  std::copy_if(cbegin(numbers), cend(numbers),
+               std::back_inserter(filteredNumbers), isEven);
+  getMinMax(filteredNumbers);
+
+  auto squaredNumbers = DataVector{};
+  squaredNumbers.reserve(numbers.size());
+  std::transform(cbegin(filteredNumbers), cend(filteredNumbers),
+                 std::back_inserter(squaredNumbers), squareEl);
+
+  getMinMax(squaredNumbers);
+  return 0;
 }
-// Listing 3.5: Invalid use of par_unseq with synchronising operation
+// Listing 3.5: Performing operations on data without ranges

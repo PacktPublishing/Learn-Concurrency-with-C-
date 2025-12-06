@@ -3,33 +3,37 @@
 #include <print>
 #include <vector>
 
+constexpr double c = 299'792'458.0;  // speed of light, m/s
+
+auto convertToFrequencyTHz(double wavelenNm) {
+  return c * 1e-3 / wavelenNm;
+}
+using DataVector = std::vector<double>;
+
+void printMeasurementData(const DataVector& wavelengthsNm,
+                          const DataVector& frequenciesThz) {
+  std::println("{:^15} | {:^15}", "Wavelength (nm)",
+               "Frequency (THz)");
+  std::println("{:-^32}", "");
+
+  for (auto i = 0; i < wavelengthsNm.size(); ++i) {
+    std::println("{:<15.2f} | {:>15.2f}", wavelengthsNm[i],
+                 frequenciesThz[i]);
+  }
+}
+
 int main() {
-  using DataSet = std::vector<int>;
-  const auto data = DataSet(1000, 21);
-
-  try {
-    auto noPolicyResult = DataSet{};
-    noPolicyResult.reserve(data.size());
-    std::transform(cbegin(data), cend(data),
-                   std::back_inserter(noPolicyResult), [](auto&) {
-                     throw std::runtime_error("Non-terminating");
-                     return 1;
-                   });
-  } catch (...) {
-    std::println("Error from non-policy transform");
-  }
-
-  try {
-    auto seqPolicyResult = DataSet{};
-    seqPolicyResult.reserve(data.size());
-    std::transform(std::execution::seq, cbegin(data), cend(data),
-                   begin(seqPolicyResult), [](auto&) {
-                     throw std::runtime_error("Terminating");
-                     return 1;
-                   });
-  } catch (...) {
-    std::println("This won't be printed anyway");
-  }
+  const auto wavelengthsNm =
+      DataVector{973.0, 705.9, 884.9, 399.5, 484.6,
+                 413.8, 675.7, 686.5, 550.5, 877.2};
+  auto frequenciesThz = DataVector{};
+  frequenciesThz.reserve(wavelengthsNm.size());
+  std::for_each(
+      std::execution::seq, cbegin(wavelengthsNm),
+      cend(wavelengthsNm), [&frequenciesThz](auto& el) {
+        frequenciesThz.push_back(convertToFrequencyTHz(el));
+      });
+  printMeasurementData(wavelengthsNm, frequenciesThz);
   return 0;
 }
-// Listing 3.4: Exceptions in algorithms with execution policies
+// Listing 3.4: use std::for_each instead of std::transform

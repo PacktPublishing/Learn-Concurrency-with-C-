@@ -1,38 +1,39 @@
-#include <algorithm>
-#include <execution>
-#include <numeric>
 #include <print>
-#include <random>
-#include <ranges>
+#include <thread>
 #include <vector>
 
-using DataSet = std::vector<int>;
+class Resource {
+ public:
+  auto getX() const { return x; }
+  auto setX(int val) { x = val; }
 
-auto getRandomNumbers(unsigned size) -> DataSet {
-  auto randomGenerator = []() {
-    auto seed = std::random_device{}();
-    auto eng = std::default_random_engine{seed};
-    auto dist = std::uniform_int_distribution<int>(1, 100);
-    return dist(eng);
-  };
-  auto numbers = DataSet(size, 0);
-  std::generate(begin(numbers), end(numbers), randomGenerator);
-  return numbers;
+ private:
+  int x{21};
+};
+
+Resource resource{};
+
+auto heavyComputation() {
+  auto x_before = resource.getX();
+  std::println("Value of x before: {}", x_before);
+  auto new_x = x_before + 1;
+  resource.setX(new_x);
+  auto x_after = resource.getX();
+  std::println("Value of x after: {}", x_after);
+}
+
+auto doWork(int maxThreads) {
+  auto jthreads = std::vector<std::jthread>();
+  for (int i = 0; i < maxThreads; i++) {
+    jthreads.emplace_back(heavyComputation);
+  }
 }
 
 int main() {
-  const auto isEven = [](const auto& n) { return n % 2 == 0; };
-  const auto squareEl = [](const auto& n) { return n * n; };
-
-  auto numbers = getRandomNumbers(20);
-
-  auto [min, max] = 
-    std::ranges::minmax(
-      std::execution::par, numbers 
-        | std::views::filter(std::execution::seq, isEven) 
-        | std::views::transform(std::execution::par_unseq, squareEl));
-
-  std::print("Min: {}, Max: {}\n", min, max);
+  auto nrOfThreads = std::thread::hardware_concurrency();
+  std::println("Number of threads: {}", nrOfThreads);
+  doWork(nrOfThreads);
+  std::println("Final value of x: {}", resource.getX());
   return 0;
 }
-// Listing 3.8: Proposed syntax for ranges with parallel policies
+// Listing 3.8: Data race: incrementing x in multiple threads

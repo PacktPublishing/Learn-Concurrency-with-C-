@@ -1,28 +1,29 @@
+#include <mutex>
 #include <print>
 #include <thread>
 
-auto thread_func1(std::thread& t2) {
-  std::println("Thread 1 started");
-  t2.join();
-  std::println("Thread 1 finished");
-}
-
-auto thread_func2(std::thread& t1) {
-  std::println("Thread 2 started");
-  t1.join();
-  std::println("Thread 2 finished");
-}
-
 int main() {
-  auto t1 = std::thread{};
-  auto t2 = std::thread{};
-  t1 = std::thread(thread_func1, std::ref(t2));
-  t2 = std::thread(thread_func2, std::ref(t1));
+  using std::chrono_literals::operator""ms;
 
-  t1.join();
-  t2.join();
+  std::mutex m1;
+  std::mutex m2;
 
-  std::println("Main thread finished");
+  auto t1 = std::jthread([&m1, &m2]() {
+    std::println("Acquiring resource nr 1!");
+    auto guard1 = std::lock_guard(m1);
+    std::this_thread::sleep_for(10ms);
+    std::println("Acquiring resource nr 2!");
+    auto guard2 = std::lock_guard(m2);
+  });
+
+  auto t2 = std::jthread([&m1, &m2]() {
+    std::println("Acquiring resource nr 2!");
+    auto guard2 = std::lock_guard(m2);
+    std::this_thread::sleep_for(10ms);
+    std::println("Acquiring resource nr 1!");
+    auto guard1 = std::lock_guard(m1);
+  });
+
   return 0;
 }
-// Listing 3.10: Deadlock: threads waiting for each other before finish
+// Listing 3.10: Threads contending for same resources
