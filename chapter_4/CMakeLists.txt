@@ -1,16 +1,14 @@
 get_filename_component(CHAPTER_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(CHAPTER_SOURCES
-    listing3_1.cpp
-    listing3_2.cpp
-    listing3_3.cpp
-    listing3_4.cpp
-    listing3_5.cpp
-    listing3_6.cpp
-    listing3_7.cpp
-    listing3_8.cpp
-    listing3_9.cpp
-    listing3_10.cpp
+    listing4_1.cpp
+    listing4_2.cpp
+    listing4_3.cpp
+    listing4_4.cpp
+    listing4_5.cpp
+    listing4_6.cpp
+    listing4_7.cpp
+    listing4_8.cpp
 )
 
 foreach(source ${CHAPTER_SOURCES})
