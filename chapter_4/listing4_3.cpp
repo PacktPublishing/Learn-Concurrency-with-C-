@@ -1,58 +1,51 @@
 #include <future>
 #include <mutex>
 #include <print>
-#include <random>
 #include <vector>
 
-std::random_device rd;
-std::mt19937 gen{rd()};
-std::uniform_int_distribution<int> dist(200, 500);
-unsigned max_attempts = 3;
-std::timed_mutex m;
-int globalResource = 0;
-
-using std::chrono_literals::operator""ms;
-
-auto modifyResource() -> int {
-  auto lock = std::unique_lock(m, std::try_to_lock);
-  std::print("Mutex locked: {}\n", lock.owns_lock());
-
-  if (not lock.owns_lock()) {
-    auto counter = max_attempts;
-
-    const auto timeout = std::chrono::milliseconds(dist(gen));
-    std::print("Timeout value: {}\n", timeout.count());
-
-    while (not lock.try_lock_for(timeout)) {
-      std::print("Failed to lock mutex\n");
-      if (--counter == 0) {
-        std::print("Max attempts reached\n");
-        return 1;
-      }
-    }
+class ShoppingList {
+ public:
+  auto addItem(std::string item) {
+    const auto guard = std::lock_guard(m_);
+    shoppingList_.emplace_back(std::move(item));
   }
-  std::print("Mutex locked: {}\n", lock.owns_lock());
-  ++globalResource;
-  return 0;
-}
+  auto getSummary() const {
+    const auto guard = std::lock_guard(m_);
+    if (shoppingList_.empty()) {
+      return std::string{"Shopping List:\n(no items)\n"};
+    }
+    auto result = std::string{"Shopping List:\n"};
+    for (const auto& item : shoppingList_) {
+      result += std::format("  • {}\n", item);
+    }
+    return result;
+  }
+
+ private:
+  mutable std::mutex m_;
+  std::vector<std::string> shoppingList_;
+};
 
 int main() {
-  auto futures = std::vector<std::future<int>>{};
-  auto threadsNr = std::thread::hardware_concurrency();
+  auto futures = std::vector<std::future<void>>{};
+  auto threadCount = std::thread::hardware_concurrency();
+  futures.reserve(threadCount);
 
-  std::print("Launching {} threads, global resource value: {}\n",
-             threadsNr, globalResource);
-  for (int i = 0; i < threadsNr; i++) {
-    futures.emplace_back(std::async(modifyResource));
+  auto sharedList = ShoppingList{};
+
+  std::println("Initial list:\n{}", sharedList.getSummary());
+  for (int i = 0; i < threadCount; i++) {
+    futures.emplace_back(std::async([&sharedList, i] {
+      if (i % 2) {
+        sharedList.addItem("Apple");
+      } else {
+        sharedList.addItem("Banana");
+      }
+    }));
   }
-
-  const auto failedThreads =
-      std::count_if(futures.begin(), futures.end(),
-                    [](auto& f) { return f.get() == 1; });
-  std::print("Threads finished, global resource value: {}\n",
-             globalResource);
-  std::print("Thread that failed to modify resource: {}\n",
-             failedThreads);
+  std::for_each(futures.begin(), futures.end(),
+                [](auto& f) { f.wait(); });
+  std::println("Final list:\n{}", sharedList.getSummary());
   return 0;
 }
-// Listing 4.3: Locking with random timeout
+// Listing 4.3: Thread-safe shopping list

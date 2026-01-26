@@ -23,6 +23,9 @@ class SharedAccount {
                               SharedAccount& to, int amount)
       -> bool;
 
+  template <typename... Args>
+  friend auto getTotalBalance(Args&... accounts) -> unsigned;
+
  private:
   mutable std::shared_mutex m_;
   unsigned balance_{0};
@@ -39,6 +42,15 @@ auto transferBetween(SharedAccount& from, SharedAccount& to,
     return false;
   }
   return true;
+}
+
+template <typename... Args>
+auto getTotalBalance(Args&... accounts) -> unsigned {
+  std::lock(accounts.m_...);
+
+  auto locks = std::tuple{
+      std::shared_lock(accounts.m_, std::adopt_lock)...};
+  return (accounts.balance_ + ...);
 }
 
 int main() {
@@ -61,8 +73,7 @@ int main() {
           if (not result) {
             std::println("Transfer failed!");
           }
-          std::this_thread::sleep_for(
-              std::chrono::milliseconds(500));
+          std::this_thread::sleep_for(std::chrono::seconds(1));
           i++;
         }
       },
@@ -76,10 +87,12 @@ int main() {
         [&sharedAccount1,
          &sharedAccount2](std::stop_token stopToken) {
           while (not stopToken.stop_requested()) {
-            std::println("Balance 1: {}",
-                         sharedAccount1.getBalance());
-            std::println("Balance 2: {}",
-                         sharedAccount2.getBalance());
+            std::println(
+                "Balance: {}",  // in this case should always
+                                // remain the same, as we're
+                                // transferring between 2
+                                // accounts all the time
+                getTotalBalance(sharedAccount1, sharedAccount2));
             std::this_thread::sleep_for(
                 std::chrono::milliseconds(100));
           }
@@ -90,4 +103,4 @@ int main() {
   stopSource.request_stop();
   return 0;
 }
-// Listing 4.7: Locking multiple mutexes using scoped lock
+// Listing 4.9: Lock adopting
