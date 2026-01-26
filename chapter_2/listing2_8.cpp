@@ -7,16 +7,17 @@ using std::chrono_literals::operator""s;
 
 auto continuousProcessing() {
   std::println("Processing...");
-  std::this_thread::sleep_for(2s);
-  throw std::runtime_error("Processing error"); 
+  std::this_thread::sleep_for(5s);
+  throw std::runtime_error("Processing error");
 }
 
-auto cleanup() { 
+auto cleanup() {
   std::println("Cleaning up...");
   std::this_thread::sleep_for(2s);
 }
 
-auto heavyComputation(std::stop_token stopToken, std::promise<int> p) {
+auto heavyComputation(std::stop_token stopToken,
+                      std::promise<int> p) {
   while (not stopToken.stop_requested()) {
     try {
       continuousProcessing();
@@ -51,4 +52,4 @@ int main() {
   }
   return 0;
 }
-// Listing 2.8: Detaching jthread and using set_exception_at_thread_exit
+// Listing 2.8: Detached jthread and exception at thread exit

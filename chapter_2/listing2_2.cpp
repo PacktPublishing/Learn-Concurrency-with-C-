@@ -2,22 +2,18 @@
 #include <print>
 #include <thread>
 
-auto throwingOperation() {
-  throw std::runtime_error("Computation error");
-}
-
-auto heavyComputation(std::promise<unsigned> promise) {
-  std::println("Simulating computation in background");
-  auto sum = 0u;
-  for (auto i = 0u; i < 1'000'000'000u; ++i) {
-    sum += i % 2;
+auto heavyComputation(std::promise<int> promise) {
+  try {
+    std::println("Simulating computation in background");
+    throw std::runtime_error("Computation error");
+  } catch (const std::runtime_error& e) {
+    promise.set_exception(std::current_exception());
   }
-  promise.set_value(sum);
 }
 
 auto doWork() {
   std::println("Starting computation...");
-  auto promise = std::promise<unsigned>();
+  auto promise = std::promise<int>();
   auto future = promise.get_future();
   auto jthread =
       std::jthread(heavyComputation, std::move(promise));

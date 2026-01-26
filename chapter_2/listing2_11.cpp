@@ -21,7 +21,8 @@ class LongtermProcess {
     }
     std::println("Starting long-term process...");
     result_.reset();
-    auto future = std::async(heavyComputation);
+    auto future =
+        std::async(std::launch::async, heavyComputation);
     result_ = future.share();
     return *result_;
   }
@@ -59,4 +60,5 @@ int main() {
 
   return 0;
 }
-// Listing 2.11: Using shared_future for single-launch, long-term processing
+// Listing 2.11: Using shared_future for single-launch, long-term
+// processing

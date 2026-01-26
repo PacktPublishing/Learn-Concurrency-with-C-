@@ -2,7 +2,7 @@
 #include <print>
 #include <thread>
 
-auto heavyComputation(std::promise<unsigned> promise) {
+auto heavyComputation(std::promise<int> promise) {
   std::println("Simulating computation in background");
   auto sum = 0u;
   for (auto i = 0u; i < 1'000'000'000u; ++i) {
@@ -13,7 +13,7 @@ auto heavyComputation(std::promise<unsigned> promise) {
 
 auto doWork() {
   std::println("Starting computation...");
-  auto promise = std::promise<unsigned>();
+  auto promise = std::promise<int>();
   auto future = promise.get_future();
   auto jthread =
       std::jthread(heavyComputation, std::move(promise));
