@@ -1,40 +1,60 @@
 #include <algorithm>
 #include <execution>
-#include <numeric>
 #include <print>
 #include <random>
 #include <ranges>
 #include <vector>
 
-using DataVector = std::vector<int>;
+constexpr double c = 299'792'458.0;  // speed of light, m/s
 
-auto getRandomNumbers(unsigned size) -> DataVector {
-  auto randomGenerator = []() {
-    auto seed = std::random_device{}();
-    auto eng = std::default_random_engine{seed};
-    auto dist = std::uniform_int_distribution<int>(1, 100);
-    return dist(eng);
-  };
-  auto numbers = DataVector(size, 0);
-  std::generate(begin(numbers), end(numbers), randomGenerator);
-  return numbers;
+auto convertToFrequencyTHz(double wavelenNm) {
+  return c * 1e-3 / wavelenNm;
+}
+
+using DataVector = std::vector<double>;
+
+auto generateData(unsigned size, double minWavelengthNm,
+                  double maxWavelengthNm) {
+  auto gen = std::mt19937(std::random_device{}());
+  auto dist = std::uniform_real_distribution<double>(
+      minWavelengthNm, maxWavelengthNm);
+  auto wavelengthsNm = DataVector(size);
+  std::ranges::generate(std::execution::seq, wavelengthsNm,
+                        [&] { return dist(gen); });
+  return wavelengthsNm;
+}
+
+auto processData(const DataVector& wavelengthsNm,
+                 double minFreqTHz, double maxFreqTHz) {
+  return wavelengthsNm |
+         std::views::transform(convertToFrequencyTHz) |
+         std::views::filter([=](double f) {
+           return f >= minFreqTHz and f <= maxFreqTHz;
+         }) |
+         std::ranges::to<std::vector>();
+}
+
+auto getMinMaxValue(const DataVector& filteredFrequencies) {
+  return std::ranges::minmax_element(std::execution::par,
+                                     filteredFrequencies);
 }
 
 int main() {
-  const auto isEven = [](const auto& n) { return n % 2 == 0; };
-  const auto squareEl = [](const auto& n) { return n * n; };
+  constexpr auto N = 10'000;
+  constexpr double minWavelengthNm = 3.0;
+  constexpr double maxWavelengthNm = 750.0;
+  constexpr double minFreqTHzExtremeUV = 2500.0;
+  constexpr double maxFreqTHzExtremeUV = 30000.0;
 
-  auto numbers = getRandomNumbers(20);
-
-  auto [min, max] = 
-    std::ranges::minmax(
-      std::execution::par, numbers 
-        | std::views::filter
-            (std::execution::seq, isEven) 
-        | std::views::transform
-            (std::execution::par_unseq, squareEl));
-
-  std::print("Min: {}, Max: {}\n", min, max);
+  auto wavelengthsNm =
+      generateData(N, minWavelengthNm, maxWavelengthNm);
+  auto processedData = processData(
+      wavelengthsNm, minFreqTHzExtremeUV, maxFreqTHzExtremeUV);
+  auto [min, max] = getMinMaxValue(processedData);
+  std::println(
+      "Extreme UV frequencies detected in range: | {:.2f} THz, "
+      "{:.2f} THz | ",
+      *min, *max);
   return 0;
 }
 // Listing 3.7: Proposed syntax for ranges with parallel policies

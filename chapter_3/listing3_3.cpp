@@ -19,7 +19,7 @@ int main() {
     std::transform(cbegin(wavelengthsNm), cend(wavelengthsNm),
                    begin(frequenciesThz), convertToFrequencyTHz);
   } catch (const std::exception& e) {
-    std::println("error caught: {}", e.what());
+    std::println("no-policy error caught: {}", e.what());
   }
   frequenciesThz.clear();
   try {
@@ -27,7 +27,7 @@ int main() {
                    cend(wavelengthsNm), begin(frequenciesThz),
                    convertToFrequencyTHz);
   } catch (const std::exception& e) {
-    std::println("error caught: {}", e.what());
+    std::println("seq-policy error caught: {}", e.what());
   }
   return 0;
 }

@@ -1,47 +1,64 @@
 #include <algorithm>
-#include <numeric>
+#include <execution>
 #include <print>
 #include <random>
 #include <vector>
 
-using DataVector = std::vector<int>;
+constexpr double c = 299'792'458.0;  // speed of light, m/s
 
-auto getRandomNumbers(unsigned size) -> DataVector {
-  auto randomGenerator = []() {
-    auto seed = std::random_device{}();
-    auto eng = std::default_random_engine{seed};
-    auto dist = std::uniform_int_distribution<int>(1, 100);
-    return dist(eng);
-  };
-  auto numbers = DataVector(size, 0);
-  std::generate(begin(numbers), end(numbers), randomGenerator);
-  return numbers;
+auto convertToFrequencyTHz(double wavelenNm) {
+  return c * 1e-3 / wavelenNm;
+}
+
+using DataVector = std::vector<double>;
+
+auto generateData(unsigned size, double minWavelengthNm,
+                  double maxWavelengthNm) {
+  auto gen = std::mt19937(std::random_device{}());
+  auto dist = std::uniform_real_distribution<double>(
+      minWavelengthNm, maxWavelengthNm);
+  auto wavelengthsNm = DataVector(size);
+  std::generate(begin(wavelengthsNm), end(wavelengthsNm),
+                [&] mutable { return dist(gen); });
+  return wavelengthsNm;
+}
+
+auto processData(const DataVector& wavelengthsNm,
+                 double minFreqTHz, double maxFreqTHz) {
+  auto frequenciesThz = DataVector(wavelengthsNm.size());
+  std::transform(cbegin(wavelengthsNm), cend(wavelengthsNm),
+                 begin(frequenciesThz), convertToFrequencyTHz);
+
+  auto filteredFrequencies = DataVector{};
+  std::copy_if(
+      begin(frequenciesThz), end(frequenciesThz),
+      std::back_inserter(filteredFrequencies), [=](double freq) {
+        return freq >= minFreqTHz and freq <= maxFreqTHz;
+      });
+  return filteredFrequencies;
+}
+
+auto getMinMaxValue(const DataVector& filteredFrequencies) {
+  return std::minmax_element(cbegin(filteredFrequencies),
+                             cend(filteredFrequencies));
 }
 
 int main() {
-  const auto getMinMax = [](const auto& collection) {
-    auto [min, max] = std::minmax_element(cbegin(collection),
-                                          cend(collection));
-    std::print("Min: {}, Max: {}\n", *min, *max);
-  };
-  const auto isEven = [](const auto& n) { return n % 2 == 0; };
-  const auto squareEl = [](const auto& n) { return n * n; };
+  constexpr auto N = 10'000;
+  constexpr double minWavelengthNm = 3.0;
+  constexpr double maxWavelengthNm = 750.0;
+  constexpr double minFreqTHzExtremeUV = 2500.0;
+  constexpr double maxFreqTHzExtremeUV = 30000.0;
 
-  auto numbers = getRandomNumbers(20);
-  getMinMax(numbers);
-
-  auto filteredNumbers = DataVector{};
-  filteredNumbers.reserve(numbers.size());
-  std::copy_if(cbegin(numbers), cend(numbers),
-               std::back_inserter(filteredNumbers), isEven);
-  getMinMax(filteredNumbers);
-
-  auto squaredNumbers = DataVector{};
-  squaredNumbers.reserve(numbers.size());
-  std::transform(cbegin(filteredNumbers), cend(filteredNumbers),
-                 std::back_inserter(squaredNumbers), squareEl);
-
-  getMinMax(squaredNumbers);
+  auto wavelengthsNm =
+      generateData(N, minWavelengthNm, maxWavelengthNm);
+  auto processedData = processData(
+      wavelengthsNm, minFreqTHzExtremeUV, maxFreqTHzExtremeUV);
+  auto [min, max] = getMinMaxValue(processedData);
+  std::println(
+      "Extreme UV frequencies detected in range: | {:.2f} THz, "
+      "{:.2f} THz | ",
+      *min, *max);
   return 0;
 }
 // Listing 3.5: Performing operations on data without ranges

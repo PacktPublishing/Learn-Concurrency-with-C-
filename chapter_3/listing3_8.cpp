@@ -11,7 +11,7 @@ class Resource {
   int x{21};
 };
 
-Resource resource{};
+Resource resource;
 
 auto heavyComputation() {
   auto x_before = resource.getX();
